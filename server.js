@@ -14,7 +14,7 @@ let dbhandle = Pool(() => {
     return db.open(config.db.connString);
 }, 10)
 
-let svr = new http.Server(8088, [(v) => {
+let svr = new http.Server(config.listenPort, [(v) => {
     let ip = v.socket.remoteAddress;
     // console.log('remote ip: ' + ip + " address: " + v.address);
     let sessionid = v.cookies['sessionid'];
