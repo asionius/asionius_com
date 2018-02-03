@@ -213,7 +213,7 @@ let svr = new http.Server(config.listenPort, [(v) => {
             keywords = JSON.stringify(form.keywords),
             intro = content.substr(0, 200),
             read = 0,
-            author = req.session.username,
+            author = v.session.username,
             created = new Date(),
             changed = created;
         dbhandle((conn) => {
@@ -248,7 +248,7 @@ let svr = new http.Server(config.listenPort, [(v) => {
             }));
             return;
         }
-        if (res[0].author !== req.session.username) {
+        if (res[0].author !== v.session.username) {
             v.response.body.write(JSON.stringify({
                 error: 'not permit'
             }));
