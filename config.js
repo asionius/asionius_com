@@ -1,6 +1,8 @@
 module.exports = {
+    // domain: "127.0.0.1",
+    domain: "asionius.com",
     db: {
-        "connString": "mysql://root:123456@localhost/aionius_com"
+        "connString": "mysql://root:123456@localhost/asionius_com"
     },
     log: [{
         "type": "file",

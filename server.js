@@ -11,15 +11,15 @@ config.log.forEach((log) => {
     console.add(log);
 })
 let dbhandle = Pool(() => {
-    return db.open('mysql://root:123456');
+    return db.open(config.db.connString);
 }, 10)
 
 let svr = new http.Server(8088, [(v) => {
     let ip = v.socket.remoteAddress;
-    console.log('remote ip: ' + ip + " address: " + v.address);
+    // console.log('remote ip: ' + ip + " address: " + v.address);
     let sessionid = v.cookies['sessionid'];
     if (!sessionid) {
-        let sessionid = uuid.random().toString('hex');
+        sessionid = uuid.random().toString('hex');
         v.response.addHeader('set-Cookie', "sessionid=" + sessionid + "; Expires=" + new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toGMTString() + "; path=/; domain=" + config.domain);
         v.cookies['sessionid'] = sessionid;
         sessionStorage[sessionid] = {
@@ -34,14 +34,26 @@ let svr = new http.Server(8088, [(v) => {
     }
     v.session = sessionStorage[sessionid];
 }, {
-    '/blogdata/sync': function(v) {
-        v.response.body.write(JSON.stringify({
-            online: v.session.online
-        }))
+    '/blogdata/sync': function (v) {
+        if (v.session.online)
+        {
+            v.response.body.write(JSON.stringify({
+                result: 0,
+                username: v.session.username 
+            }))
+        }
+        else {
+            let token = hash.md5(v.session.id).digest().hex();
+            v.session.token = token;
+            v.response.body.write(JSON.stringify({
+                token: token
+            }))
+        }
     },
     '/blogdata/signup': (v) => {
-        let username = v.form.username;
-        let passwd = v.form.passwd;
+        let data = JSON.parse(v.data.toString());
+        let username = data.username;
+        let passwd = data.passwd;
         let res = dbhandle((conn) => {
             return conn.execute('SELECT username from users where username=?;', username);
         })
@@ -54,10 +66,14 @@ let svr = new http.Server(8088, [(v) => {
         dbhandle((conn) => {
             return conn.execute('INSERT INTO users (username, hpass, `created`) VALUES (?, ?, ?);', username, passwd, new Date());
         })
+        v.response.body.write(JSON.stringify({
+            result: 0
+        }))
     },
     '/blogdata/signin': (v) => {
-        let username = v.form.username;
-        let passwd = v.form.passwd;
+        let data = JSON.parse(v.data.toString());
+        let username = data.username;
+        let passwd = data.passwd;
         let session = v.session;
         let token = session.token;
         let res = dbhandle((conn) => {
@@ -119,6 +135,7 @@ let svr = new http.Server(8088, [(v) => {
         dbhandle((conn) => {
             conn.execute('UPDATE blog B SET B.read=B.read+1 where article_id=?;', id);
         });
+        res[0].content = res[0].content.toString();
         v.response.body.write(JSON.stringify(res[0]));
     },
     "/blogdata/comment/(.*)$": (v) => {
@@ -130,6 +147,9 @@ let svr = new http.Server(8088, [(v) => {
         let res = dbhandle((conn) => {
             return conn.execute('SELECT * FROM comment WHERE article_id=?', id);
         });
+        res.forEach((c)=>{
+            c.content = c.content.toString();
+        })
         v.response.body.write(JSON.stringify(res));
     },
     '/blogdata/catalog/(.*)$': (v) => {
@@ -140,7 +160,7 @@ let svr = new http.Server(8088, [(v) => {
         v.response.body.write(JSON.stringify(res));
     },
     '/blogdata/comment': (v) => {
-        let params = v.form;
+        let params = JSON.parse(v.data.toString());
         if (!("id" in params) || !("name" in params) || !("comment" in params)) {
             res.json({
                 error: "name or comment empty"
@@ -239,7 +259,6 @@ let svr = new http.Server(8088, [(v) => {
     '*': (v) => [
         http.fileHandler('./public'),
         (v, url) => {
-            console.log(url);
             if (/\/(home)|(blog)|(article)|(signin)|(signup)|(about).*/.test(url)) {
                 v.response.addHeader('Content-Type', 'text/html');
                 v.response.body = fs.openFile('./public/index.html');
