@@ -205,7 +205,8 @@ let svr = new http.Server(config.listenPort, [(v) => {
             }));
             return;
         }
-        var form = req.form,
+        let data = JSON.parse(v.data.toString());
+        let form = data,
             title = form.title,
             content = form.content,
             catalog = form.catalog,
@@ -230,7 +231,8 @@ let svr = new http.Server(config.listenPort, [(v) => {
             }));
             return;
         }
-        var id = req.form.id;
+        let data = JSON.parse(v.data.toString());
+        var id = data.id;
         if (!/^\d+$/.test("" + id)) {
             v.response.body.write(JSON.stringify({
                 error: 'id should be number'
