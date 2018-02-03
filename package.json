@@ -1,0 +1,8 @@
+{
+    "name": "asionius.com",
+    "version": "0.0.0",
+    "private": true,
+    "dependencies": {
+        "fib-pool": "^1.3.1"
+    }
+}
