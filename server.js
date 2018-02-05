@@ -169,6 +169,9 @@ let svr = new http.Server(config.listenPort, [(v) => {
         dbhandle((conn) => {
             conn.execute("INSERT INTO comment (article_id, content, quoteid, author, email, created) VALUES (?, ?, ?, ?, ?, ?)", params.id, params.comment, params.quoteid, params.name, params.email);
         });
+        v.response.body.write(JSON.stringify({
+            result: 0
+        }));
         return;
         if (params.quoteid > 0) {
             let res = dbhandle((conn) => {

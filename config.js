@@ -1,7 +1,7 @@
 module.exports = {
-    // domain: "127.0.0.1",
+    domain: "127.0.0.1",
     listenPort: 8081,
-    domain: "asionius.com",
+    // domain: "asionius.com",
     db: {
         "connString": "mysql://root:123456@localhost/asionius_com"
     },
