@@ -34,15 +34,13 @@ let svr = new http.Server(config.listenPort, [(v) => {
     }
     v.session = sessionStorage[sessionid];
 }, {
-    '/blogdata/sync': function (v) {
-        if (v.session.online)
-        {
+    '/blogdata/sync': function(v) {
+        if (v.session.online) {
             v.response.body.write(JSON.stringify({
                 result: 0,
-                username: v.session.username 
+                username: v.session.username
             }))
-        }
-        else {
+        } else {
             let token = hash.md5(v.session.id).digest().hex();
             v.session.token = token;
             v.response.body.write(JSON.stringify({
@@ -147,7 +145,7 @@ let svr = new http.Server(config.listenPort, [(v) => {
         let res = dbhandle((conn) => {
             return conn.execute('SELECT * FROM comment WHERE article_id=?', id);
         });
-        res.forEach((c)=>{
+        res.forEach((c) => {
             c.content = c.content.toString();
         })
         v.response.body.write(JSON.stringify(res));
@@ -171,7 +169,8 @@ let svr = new http.Server(config.listenPort, [(v) => {
         dbhandle((conn) => {
             conn.execute("INSERT INTO comment (article_id, content, quoteid, author, email, created) VALUES (?, ?, ?, ?, ?, ?)", params.id, params.comment, params.quoteid, params.name, params.email);
         });
-        if (quoteid > 0) {
+        return;
+        if (params.quoteid > 0) {
             let res = dbhandle((conn) => {
                 return conn.execute("SELECT email, LAST_INSERT_ID() comment_id FROM comment WHERE comment_id=?", params.quoteid);
             });
